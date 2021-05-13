@@ -1,0 +1,53 @@
+# Root folder
+^compile\.bat$
+^Start[A-Za-z]+\.bat$
+
+# Binaries folder
+^Binaries\\ActorX\\.+
+^Binaries\\FaceFXPlugins\\.+
+^Binaries\\GFx\\.+
+^Binaries\\Redist\\.+
+^Binaries\\SpeedTreeModeler\\.+
+^Binaries\\[A-Za-z\.]+\.exe$
+^Binaries\\[A-Za-z\.]+\.dll$
+^Binaries\\[A-Za-z\.]+\.config$
+^Binaries\\[A-Za-z\.]+\.xml$
+
+# Development folder
+^Development\\Flash\\.+
+^Development\\Src\\(?!TibSun_Game)(?!RA_Game)(?!ConsoleVariableLibrary)[A-Za-z0-9\-_]+\\.+
+
+# Engine folder
+^Engine\\.+
+
+# ExampleAssets folder
+^ExampleAssets\\.+
+
+#
+# UDKGame
+#
+
+# Build
+^UDKGame\\Build\\.+
+
+# Content
+^UDKGame\\Content\\Functions\\.+
+^UDKGame\\Content\\GFx\\.+
+^UDKGame\\Content\\RedAlert\\.+
+^UDKGame\\Content\\RenX\\.+
+^UDKGame\\Content\\Shared\\.+
+^UDKGame\\Content\\Showcases\\.+
+^UDKGame\\Content\\TestPackages\\.+
+^UDKGame\\Content\\UT3\\.+
+^UDKGame\\Content\\[A-Za-z0-9\-_]+\.bin$
+^UDKGame\\Content\\[A-Za-z0-9\-_]+\.upk$
+
+# Flash
+^UDKGame\\Flash\\(?!TSHUD)(?!TSPurchaseMenu).+
+
+# ProjectTemplates
+^UDKGame\\ProjectTemplates\\.+
+
+# Script
+^UDKGame\\Script\\(?!TibSun_Game)(?!RA_Game)(?!ConsoleVariableLibrary)[A-Za-z\-_]+\.u
+^UDKGame\\Script\\Manifest.txt$

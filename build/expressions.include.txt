@@ -1,0 +1,72 @@
+#
+# PATCH INCLUSION LIST
+#
+# Each line must either be one of the following:
+#	1) Entirely whitespace / empty (ignored by builds)
+#	2) Start with # to indicate a comment (ignored by builds)
+#	3) A regular expression to match files against, to indicate that they need to be included in the build
+#
+
+# Binaries folder
+^Binaries\\Win32\\.+
+^Binaries\\Win64\\.+
+^Binaries\\InstallData\\.+
+^Binaries\\build\.properties$
+^Binaries\\Ionic\.Zip\.Reduced\.dll$
+^Binaries\\MobileShaderAnalyzer\.exe$
+^Binaries\\MobileShaderAnalyzer\.exe\.config$
+^Binaries\\P4API\.dll$
+^Binaries\\RPCUtility\.exe$
+^Binaries\\RPCUtility\.exe\.config$
+^Binaries\\ShaderKeyTool\.exe$
+^Binaries\\ShaderKeyTool\.exe\.config$
+^Binaries\\UDKLift\.exe$
+^Binaries\\UnSetup\.exe$
+^Binaries\\UnSetup\.exe\.config$
+^Binaries\\UnSetup\.Game\.xml$
+^Binaries\\UnSetup\.Manifests\.Game\.xml$
+^Binaries\\UnSetup\.Manifests\.xml$
+
+# Engine folder
+^Engine\\Config\\[A-Za-z]+\.ini$
+^Engine\\Localization\\.+\\.+
+^Engine\\Shaders\\Binaries\\.+
+
+# Preview videos
+^PreviewVids\\Default.+
+
+#
+# UDKGame
+#
+
+^UDKGame\\PCTOC.*\.txt$
+
+# Cloud
+^UDKGame\\Cloud\\.+
+
+# Configs
+^UDKGame\\Config\\Default.+\.ini$
+
+# CookedPC
+^UDKGame\\CookedPC\\Functions\\.+
+^UDKGame\\CookedPC\\GFx\\.+
+^UDKGame\\CookedPC\\Maps\\.+
+^UDKGame\\CookedPC\\RedAlert\\.+
+^UDKGame\\CookedPC\\RenX\\.+
+^UDKGame\\CookedPC\\Shared\\.+
+^UDKGame\\CookedPC\\UT3\\.+
+^UDKGame\\CookedPC\\[A-Za-z0-9\-_]+\.bin$
+^UDKGame\\CookedPC\\[A-Za-z0-9\-_]+\.upk$
+^UDKGame\\CookedPC\\(?!TibSun_Game)[A-Za-z-_]+\.u
+
+# Localization
+^UDKGame\\Localization\\.+
+
+# Movies
+^UDKGame\\Movies\\RenX_Startup\.bik
+^UDKGame\\Movies\\UDKFrontEnd.udk_loading\.bik
+^UDKGame\\Movies\\UDKFrontEnd.udk_loading_HowToPlay\.bik
+^UDKGame\\Movies\\UE3_logo\.bik
+
+# Splash
+^UDKGame\\Splash\\.+

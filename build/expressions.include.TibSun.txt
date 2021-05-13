@@ -1,0 +1,7 @@
+#
+# CookedPC
+#
+^UDKGame\\CookedPC\\TiberianSun\\.+
+
+# TibSun_Game.u
+^UDKGame\\CookedPC\\[A-Za-z-_]+\.u

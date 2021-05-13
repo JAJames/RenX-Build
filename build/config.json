@@ -1,0 +1,83 @@
+{
+	"branches": {
+		"release": {
+			"type": "RenX"
+		},
+		"beta": {
+			"type": "RenX"
+		},
+		"alpha": {
+			"type": "TibSun"
+		},
+		"nightly": {
+			"type": "RenX"
+		},
+		"nightly_ts": {
+			"type": "TibSun"
+		},
+		"launcher": {
+			"type": "RenX"
+		},
+		"sdk": {
+			"type": "RenX.SDK"
+		}
+	},
+	"types": {
+		"RenX": {
+			"product": "game",
+			"prefix": "Patch",
+			"cook": true,
+			"retargets": [
+				{
+					"source": "^UDKGame\\\\Content\\\\",
+					"target": "UDKGame\\CookedPC\\"
+				}
+			],
+			"excluded_code": [
+				"RA_Game",
+				"TibSun_Game"
+			]
+		},
+		"TibSun": {
+			"product": "game",
+			"prefix": "TSPatch",
+			"cook": true,
+			"retargets": [
+				{
+					"source": "^UDKGame\\\\Content\\\\",
+					"target": "UDKGame\\CookedPC\\"
+				}
+			],
+			"excluded_code": [
+				"RA_Game"
+			]
+		},
+		"RenX.SDK": {
+			"product": "sdk",
+			"prefix": "SDK",
+			"cook": false,
+			"excluded_code": [
+				"RA_Game",
+				"TibSun_Game"
+			]
+		},
+		"TibSun.SDK": {
+			"product": "sdk",
+			"prefix": "TSSDK",
+			"cook": false,
+			"excluded_code": [
+				"RA_Game"
+			]
+		}
+	},
+	"nodes": {
+		"default": {
+			"cook_params": "-platform=pc -verbose -singlethread -auto -unattended -nopause -processes=1",
+			"pull_mirror": "http://us-lv.buyvm.renegade-x.com/"
+		},
+		"win2": {
+			"cook_params": "-platform=pc -verbose -singlethread -auto -unattended -nopause -processes=1",
+			"pull_mirror": "http://10.10.10.2:8081/"
+		}
+	}
+}

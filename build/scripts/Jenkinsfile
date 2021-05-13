@@ -1,0 +1,175 @@
+#!groovy
+
+def GetJobString() {
+    return JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length()) + " #" + BUILD_NUMBER
+}
+
+def GetBaseDiscordDescription() {
+    return (
+        "Name: ${env.VersionName}.${env.BUILD_NUMBER}\n"
+        + "Branch: ${env.VersionBranch}\n"
+        + "Type: ${env.BuildType}\n"
+        + "Build: [${env.BUILD_NUMBER}](${env.BUILD_URL})\n"
+    )
+}
+
+def GetStartedDiscordDescription() {
+    return (
+        GetBaseDiscordDescription()
+    )
+}
+
+def GetFinishedDiscordDescription() {
+    return (
+        GetBaseDiscordDescription()
+        + "Status: [" + currentBuild.currentResult + "](${env.BUILD_URL})\n"
+    )
+}
+
+def GetSuccessDiscordDescription() {
+    return (
+        GetFinishedDiscordDescription()
+        + "Artifacts: [changelog.txt](${env.BUILD_URL}artifact/changelog.txt), [included_files.txt](${env.BUILD_URL}artifact/included_files.txt)"
+    )
+}
+
+def GetJobDescription() {
+    def PatchDataName = readFile(file: 'PatchDataName.txt', encoding: 'UTF-16')
+    return ("Build successful. Run the \"Set Game Version\" plan to point the appropriate branch to " + PatchDataName)
+}
+
+def SetJobDescription() {
+    currentBuild.description = GetJobDescription()
+}
+
+pipeline{
+    agent {
+        node {
+            label 'renx-build'
+        }
+    }
+
+    environment {
+        DISCORD_WEBHOOK = credentials("f704b0eb-41e9-42d3-be14-0f951d6ef10b")
+        SVN_CREDS = credentials("bd2310a8-7607-4257-b749-7570e4ff2e22")
+        VCS_SSH_KEY = credentials("9b40a4a9-38fd-4230-bb4b-7fd29a09af85")
+        ROOT_DIR = "${env.workspace}"
+        UDK_PATH = "${ROOT_DIR}\\UDK_Uncooked"
+        BUILD_PATH = "${UDK_PATH}\\build"
+        UDK_URL = "svn://svn.renegade-x.com/svn/main/UDK_Uncooked"
+    }
+
+    parameters {
+        choice(name: "BuildType", choices: ["Auto", "RenX", "TibSun", "RenX.SDK", "TibSun.SDK"], description: "")
+        choice(name: "VersionBranch", choices: ["release", "beta", "alpha", "nightly", "nightly_ts", "launcher", "sdk"], description: "Version branch to base the build on")
+        string(name: "VersionName", defaultValue: "", description: "Version name to assign to the build (i.e: Open Beta 5.1234)")
+        string(name: "RevisionNumber", defaultValue: "0", description: "SVN revision number to base the build on; leave as 0 to use most recent revision")
+    }
+
+    stages {
+        stage("Prepare Workspace") {
+            // Requires: UdkPath, UdkUrl, TargetRevision, RootDir, BuildPath
+            steps {
+                discordSend description: GetStartedDiscordDescription(), footer: "Build Started", link: env.BUILD_URL, result: currentBuild.currentResult, title: ("Build Started: " + GetJobString()), webhookURL: "${env.DISCORD_WEBHOOK}"
+
+                echo "Preparing Workspace..."
+                powershell '''
+                    # Source in common.ps1
+                    . "${Env:ROOT_DIR}\\common.ps1"
+                    
+                    # Prep the workspace
+                    PrepRootDir "${Env:ROOT_DIR}"
+                    
+                    # Prep the workspace
+                    PrepSVN "${Env:UDK_PATH}" "${Env:UDK_URL}" "${Env:RevisionNumber}" -SvnUsername ${Env:SVN_CREDS_USR} -SvnPassword ${Env:SVN_CREDS_PSW}
+                '''
+            }
+        }
+        
+        stage("Build UDK") {
+            // Requires: BuildPath, SourceBranch, BuildType, UdkPath
+            steps {
+                echo "Building UDK..."
+                
+                powershell '''
+                    # Source in common.ps1
+                    . "${Env:ROOT_DIR}\\common.ps1"
+                    
+                    # Pull config data if type Auto
+                    $BuildType = (GetBuildType "${Env:BUILD_PATH}" "${Env:VersionBranch}" -BuildType "${Env:BuildType}")
+
+                    # Build UDK
+                    BuildUdk "${Env:UDK_PATH}" "$BuildType"
+                '''
+            }
+        }
+        
+        stage("Make Patch") {
+            // Requires: RootDir, UdkPath, BuildType, PatchName, SourceBranch
+            steps {
+                echo "Making Patch Data..."
+                
+                powershell '''
+                    # Source in common.ps1
+                    . "${Env:ROOT_DIR}\\common.ps1"
+                    
+                    # Pull config data if type Auto
+                    $BuildType = (GetBuildType "${Env:BUILD_PATH}" "${Env:VersionBranch}" -BuildType "${Env:BuildType}")
+                    
+                    # Make patch data
+                    $PatchDataName = (MakePatchData "${Env:ROOT_DIR}" "${Env:UDK_PATH}" "$BuildType" "${Env:VersionName}.${Env:BUILD_NUMBER}" "${Env:VersionBranch}" -DeleteBuild)
+                    echo "$PatchDataName" | Out-File "${Env:ROOT_DIR}\\PatchDataName.txt" -NoNewLine
+                '''
+            }
+        }
+        
+        stage("Publish Patch") {
+            // Requires: Env:SSHKey, Env:SSHUsername, RootDir, PatchDataName
+            steps {
+                echo "Publishing Patch..."
+                
+                powershell '''
+                    $PatchDataName = (Get-Content "${Env:ROOT_DIR}\\PatchDataName.txt")
+                    
+                    # Source in common.ps1
+                    . "${Env:ROOT_DIR}\\common.ps1"
+                    
+                    # Publish patch data
+                    PublishPatchData ${Env:VCS_SSH_KEY} ${Env:VCS_SSH_KEY_USR} "vcs.glitchware.com:/home/renx/patches/data/" "${Env:ROOT_DIR}\\$PatchDataName"
+                '''
+            }
+        }
+    }
+    
+    post {
+        success {
+            archiveArtifacts 'included_files.txt,changelog.txt'
+
+            echo GetJobDescription()
+            SetJobDescription()
+            discordSend description: GetSuccessDiscordDescription(), footer: GetJobDescription(), link: env.BUILD_URL, result: currentBuild.currentResult, title: GetJobString(), webhookURL: "${env.DISCORD_WEBHOOK}"
+        }
+        
+        failure {
+            discordSend description: GetFinishedDiscordDescription(), footer: "Build FAILED", link: env.BUILD_URL, result: currentBuild.currentResult, title: GetJobString(), webhookURL: "${env.DISCORD_WEBHOOK}"
+        }
+
+        aborted {
+            discordSend description: GetFinishedDiscordDescription(), footer: "Build ABORTED", link: env.BUILD_URL, result: currentBuild.currentResult, title: GetJobString(), webhookURL: "${env.DISCORD_WEBHOOK}"
+        }
+
+        cleanup {
+            // Cleanup build environment
+            powershell '''
+                # Remove any lingering builds
+                Remove-Item "${Env:ROOT_DIR}\\Build*" -Recurse
+
+                # Remove any lingering patch data
+                Remove-Item "${Env:ROOT_DIR}\\Patch*" -Recurse
+                Remove-Item "${Env:ROOT_DIR}\\TSPatch*" -Recurse
+                Remove-Item "${Env:ROOT_DIR}\\SDK*" -Recurse
+                Remove-Item "${Env:ROOT_DIR}\\TSSDK*" -Recurse
+            '''
+        }
+    }
+}
